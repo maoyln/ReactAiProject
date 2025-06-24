@@ -10,50 +10,73 @@ type HeaderProps = {
 };
 
 const Header = ({ menuList, currentMenu, setCurrentMenu, setHasSubMenu }: HeaderProps) => {
-  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const [selectedSubMenu, setSelectedSubMenu] = useState<string | null>(null);
 
   const handleMenuClick = (e: { key: string }) => {
-    setCurrentMenu(e.key);
-    // 显式拆分查找逻辑，明确处理 undefined 情况
-    const foundItem = menuList.find((item: MenuData) => item.key === e.key);
-    const hasSub = foundItem ? foundItem.subMenu.length > 0 : false;
-    setHasSubMenu(hasSub);
+    const targetMenu = menuList.find(item => item.key === e.key);
+    
+    if (targetMenu?.subMenu.length) {
+      const firstSubKey = `${e.key}-sub0`;
+      setSelectedSubMenu(firstSubKey);
+      setCurrentMenu(firstSubKey);
+      setHasSubMenu(true);
+    } else {
+      setSelectedSubMenu(null);
+      setCurrentMenu(e.key);
+      setHasSubMenu(false);
+    }
   };
 
-  const renderMenu = (item: MenuData) => {  // 显式声明item类型
-    if (item.subMenu.length === 0) { 
-      return (
-        <Menu.Item key={item.key} onClick={handleMenuClick}>
-          {item.name}
-        </Menu.Item>
-      );
-    }
-    return ( 
-      <Menu.SubMenu  // 移除SubMenu上的onOpenChange（错误属性）
-        key={item.key}
-        title={item.name}
-      >
-        {item.subMenu.map((sub, index) => (
-          <Menu.Item key={`${item.key}-sub${index}`} onClick={handleMenuClick}>
-            {sub}
-          </Menu.Item>
-        ))}
-      </Menu.SubMenu>
-    );
-  };
+  const renderMainMenu = (item: MenuData) => (
+    <Menu.Item 
+      key={item.key} 
+      onClick={handleMenuClick}
+      // 删除多余的 selected 属性（由外层 Menu 的 selectedKeys 自动控制）
+    >
+      {item.name}
+    </Menu.Item>
+  );
 
   return (
-    <Menu
-      mode="horizontal"
-      selectedKeys={[currentMenu]}
-      openKeys={openKeys}
-      theme="light"
-      className="header-menu"
-      // 将onOpenChange移到Menu组件（正确位置），并声明keys类型
-      onOpenChange={(keys: string[]) => setOpenKeys(keys)}
-    >
-      {menuList.map(renderMenu)}
-    </Menu>
+    <div className="header-container">
+      <Menu
+        mode="horizontal"
+        selectedKeys={menuList.some(item => item.key === currentMenu && !item.subMenu.length) ? [currentMenu] : []}
+        theme="light"
+        className="header-main-menu"
+      >
+        {menuList.map(renderMainMenu)}
+      </Menu>
+
+      {(() => {
+        const mainMenuKey = currentMenu?.split('-')[0];
+        const targetMainMenu = mainMenuKey ? menuList.find(item => item.key === mainMenuKey) : undefined;
+        
+        // 显式类型检查：确认 targetMainMenu 和 subMenu 存在且长度大于0
+        if (targetMainMenu && targetMainMenu.subMenu && targetMainMenu.subMenu.length > 0) {
+          return (
+            <Menu
+              mode="horizontal"
+              selectedKeys={[selectedSubMenu || '']}
+              theme="light"
+              className="header-sub-menu"
+              onClick={e => {
+                setCurrentMenu(e.key);
+                setSelectedSubMenu(e.key);
+              }}
+            >
+              {/* 此时 TypeScript 已确认 targetMainMenu 和 subMenu 非空 */}
+              {targetMainMenu.subMenu.map((sub: string, index: number) => (
+                <Menu.Item key={`${mainMenuKey}-sub${index}`}>
+                  {sub}
+                </Menu.Item>
+              ))}
+            </Menu>
+          );
+        }
+        return null;
+      })()}
+    </div>
   );
 };
 

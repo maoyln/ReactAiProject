@@ -26,3 +26,20 @@
     min-height: calc(100vh - 140px); // 自适应高度核心计算
   }
 }
+
+.header-container {
+  .header-main-menu {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .header-sub-menu {
+    background: #f8f8f8;
+    padding: 0 24px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+// 主内容区域满屏样式（当无二级菜单时）
+.app-content:not(.with-submenu) {
+  padding-top: 24px;  // 恢复原始padding（根据实际调整）
+}
