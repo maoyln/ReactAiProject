@@ -1,0 +1,28 @@
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 0;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  
+  .header-menu {
+    border-bottom: 0;
+  }
+}
+
+.app-content {
+  padding: 24px;
+  transition: all 0.3s;
+  
+  &.with-submenu {
+    padding-top: 64px; // 二级菜单高度补偿（根据实际调整）
+  }
+
+  .main-content {
+    background: #fff;
+    padding: 24px;
+    min-height: calc(100vh - 140px); // 自适应高度核心计算
+  }
+}
